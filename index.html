@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8"> 
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#030712">
+<title>PANJTAN</title>
+<style>
+/* ========================= 
+   RESET
+========================= */
+*{
+box-sizing:border-box;
+margin:0;
+padding:0;
+}
+/* =========================
+BODY
+ ========================= */ 
+body{
+min-height:100vh;
+padding:15px;
+display:flex;
+justify-content:center;
+align-items:center;
+background:#030712;
+color:#e5e7eb;
+font-family:
+Arial,
+Helvetica,
+sans-serif;
+}
+/* =========================
+CONTAINER 
+========================= */
+.container{
+width:100%;
+max-width:600px;
+}
+/* =========================
+GLASS CARD 
+========================= */
+.card{
+width:100%;
+padding:25px;
+border:1px solid
+rgba(56,189,248,0.35);
+border-radius:24px;
+background:
+rgba(17,24,39,0.70);
+backdrop-filter:
+blur(12px);
+-webkit-backdrop-filter:
+blur(12px);
+box-shadow:
+0 0 35px
+rgba(56,189,248,0.08);
+}
+/* =========================
+TITLE
+========================= */
+h1{
+text-align:center;
+color:#38bdf8;
+font-size:42px;
+font-weight:800;
+letter-spacing:1px;
+}
+/* =========================
+SUBTITLE 
+========================= */
+.subtitle{
+margin-top:8px;
+margin-bottom:25px;
+text-align:center;
+color:#94a3b8;
+font-size:14px;
+}
+/* =========================
+LABEL
+========================= */
+label{
+display:block;
+margin-top:15px;
+margin-bottom:8px;
+color:#e5e7eb;
+font-size:14px;
+font-weight:bold;
+}
+/* =========================
+INPUTS
+========================= */
+textarea,
+input{
+width:100%;
+border:1px solid
+rgba(56,189,248,0.30);
+border-radius:14px;
+outline:none;
+background:
+rgba(3,7,18,0.85);
+color:#ffffff;
+font-size:16px;
+}
+textarea{
+min-height:230px;
+padding:15px;
+resize:vertical;
+line-height:1.5;
+}
+input{
+height:52px;
+padding:0 15px;
+}
+/* =========================
+FOCUS 
+========================= */
+textarea:focus,
+input:focus{
+border-color:#38bdf8;
+box-shadow:
+0 0 15px
+rgba(56,189,248,0.15);
+}
+/* =========================
+BUTTON 
+========================= */
+button{
+width:100%;
+min-height:52px;
+margin-top:14px;
+padding:12px;
+border:0;
+border-radius:14px;
+font-size:16px;
+font-weight:bold;
+cursor:pointer;
+transition:
+opacity .2s ease,
+transform .1s ease;
+}
+button:active{
+transform:scale(.99);
+}
+button:disabled{
+opacity:.5;
+cursor:not-allowed;
+}
+/* =========================
+LOCK BUTTON 
+========================= */
+.lock-btn{
+background:#38bdf8;
+color:#03111c;
+}
+/* =========================
+PASTE BUTTON 
+========================= */
+.paste-btn{
+background:
+rgba(56,189,248,0.12);
+border:1px solid
+rgba(56,189,248,0.30);
+color:#38bdf8;
+}
+/* =========================
+COPY BUTTON 
+========================= */
+.copy-btn{
+background:#10b981;
+color:#022c22;
+}
+/* =========================
+HIDDEN
+========================= */ 
+.hidden{
+display:none !important;
+}
+/* =========================
+STATUS
+========================= */ 
+.status{
+min-height:24px;
+margin-top:15px;
+text-align:center;
+font-size:14px;
+line-height:1.4;
+}
+.success{
+color:#10b981;
+}
+.error{
+color:#f87171;
+}
+.warning{
+color:#fb7185;
+}
+/* =========================
+SECURITY ERROR 
+========================= */ 
+.security-error{
+border-color:#ef4444 !important;
+box-shadow:
+0 0 18px
+rgba(239,68,68,0.25) !important;
+}
+/* =========================
+MOBILE
+========================= */ 
+@media(max-width:480px){
+body{
+padding:10px;
+align-items:flex-start;
+padding-top:20px;
+}
+.card{
+padding:18px;
+border-radius:20px;
+}
+h1{
+font-size:34px;
+}
+textarea
+{
+min-height:210px;
+}
+}
+</style> 
+</head> 
+<body> 
+<div class="container"> 
+<div class="card"> 
+<h1> 
+PANJTAN 
+</h1>
+<div class="subtitle"> 
+Private Message Locker
+</div> 
+<label for="message">
+Message / Secret Code
+</label> 
+<textarea
+id="message"
+placeholder="अपना message लिखें या encrypted code यहाँ  डालें..."  
+spellcheck="false"
+autocomplete="off"
+></textarea>
+<button 
+id="pasteButton" 
+class="paste-btn" 
+type="button"
+>
+ 📥 कोड पेस्ट करें 
+</button> 
+<label for="password"> Password 
+</label>
+<input
+id="password" 
+type="text" 
+placeholder="Password डालें"
+autocomplete="new-password"
+>
+<button 
+id="lockButton" 
+class="lock-btn" 
+type="button"
+>
+ 🔐 सुरक्षित लॉक / अनलॉक करें
+</button> 
+<button 
+id="copyButton" 
+class="copy-btn hidden" 
+type="button"
+>
+ 📋 गुप्त कोड कॉपी करें 
+</button> 
+<div id="status" 
+class="status" 
+aria-live="polite"
+></div>
+</div> 
+</div>
+<script> "use strict";
+/* =========================
+ELEMENTS 
+========================= */
+const messageBox = document.getElementById("message");
+const passwordBox = document.getElementById("password");
+const lockButton = document.getElementById("lockButton"); 
+const copyButton = document.getElementById("copyButton");
+const pasteButton = document.getElementById("pasteButton");
+const statusBox = document.getElementById("status"); 
+/* =========================
+   SECURITY SETTINGS
+ ========================= */ 
+const FORMAT_PREFIX =
+"SB99v1"; 
+const SALT_LENGTH = 16; 
+const IV_LENGTH = 12; 
+const PBKDF2_ITERATIONS = 250000; 
+/* ========================= 
+STATE 
+========================= */ 
+let wrongAttempts = 0; 
+let busy = false; 
+/* =========================
+   STATUS 
+========================= */ 
+function setStatus( message, type = "" ){ 
+statusBox.textContent = message; 
+statusBox.className = "status";
+if(type)
+{ statusBox.classList.add( type );
+}
+}
+/* ========================= 
+SECURITY ERROR CLEAR 
+========================= */ 
+function clearSecurityError(){
+messageBox.classList.remove( "security-error" ); 
+passwordBox.classList.remove( "security-error" );
+}
+/* ========================= 
+BUSY STATE 
+========================= */ 
+function setBusy(value){
+    busy = value; 
+lockButton.disabled = value; 
+    pasteButton.disabled = value; 
+copyButton.disabled = value;
+}
+/* ========================= 
+ENCRYPTED CODE CHECK 
+========================= */ 
+function isEncryptedCode(text){
+return text .trim() .startsWith( FORMAT_PREFIX + "." );
+}
+/* ========================= 
+BYTES → BASE64 
+========================= */ 
+function bytesToBase64(bytes){
+let binary = ""; 
+const chunkSize = 0x8000; 
+for( let i = 0; 
+i < bytes.length; 
+i += chunkSize
+){ 
+binary += 
+String.fromCharCode( ...bytes.subarray( 
+i, 
+i + chunkSize
+) 
+);
+}
+return btoa(binary);
+}
+/* ========================= 
+BASE64 → BYTES 
+========================= */ 
+function base64ToBytes(base64){
+const binary = atob(base64); 
+const bytes = new Uint8Array( 
+binary.length); 
+for( 
+let i = 0; 
+i < binary.length; 
+i++ 
+){
+ bytes[i] = binary.charCodeAt(i);
+}
+return bytes;
+}
+/* ========================= 
+PASSWORD → AES KEY 
+========================= */ 
+async function deriveKey(
+password, salt ){ 
+const encoder = new TextEncoder(); 
+const passwordKey = 
+await crypto.subtle.importKey
+( 
+"raw", 
+encoder.encode( 
+password
+), 
+{ 
+name:"PBKDF2"
+},
+false, 
+[ 
+"deriveKey" 
+] 
+); 
+return crypto.subtle.deriveKey(
+{ 
+name:"PBKDF2", 
+salt:salt, 
+iterations: PBKDF2_ITERATIONS,
+hash:"SHA-256"
+},
+passwordKey, 
+{ 
+name:"AES-GCM", 
+length:256
+},
+false, 
+[ 
+"encrypt", 
+"decrypt" 
+] 
+);
+}
+/* ========================= 
+ENCRYPT 
+========================= */ 
+async function encryptMessage(
+message, 
+password 
+){ 
+const encoder = new TextEncoder(); 
+const salt =
+crypto.getRandomValues( new Uint8Array( SALT_LENGTH 
+) 
+);
+const iv = 
+crypto.getRandomValues( 
+new Uint8Array(
+IV_LENGTH
+) 
+); 
+const key = await deriveKey( password, salt );
+const encrypted = await crypto.subtle.encrypt( 
+{ name:"AES-GCM", 
+iv:iv, 
+tagLength:128
+},
+key, 
+encoder.encode(
+ message 
+) 
+); 
+const encryptedBytes =
+new Uint8Array( 
+encrypted 
+); 
+return ( 
+FORMAT_PREFIX + 
+"." + 
+bytesToBase64(salt) + 
+"." + 
+bytesToBase64(iv) +
+"." + 
+bytesToBase64(encryptedBytes) 
+);
+}
+/* ========================= 
+DECRYPT 
+========================= */ 
+async function decryptMessage(
+code, 
+password ){ 
+const parts = code .trim() .split("."); 
+if(
+parts.length !== 4 ){ 
+throw new Error( 
+"INVALID_CODE" 
+);
+}
+if( 
+parts[0] !== FORMAT_PREFIX ){ 
+throw new Error( 
+"INVALID_CODE"
+);
+}
+const salt = base64ToBytes( parts[1] );
+const iv = base64ToBytes( parts[2] ); 
+const encrypted = base64ToBytes( parts[3]); 
+if( 
+salt.length !== 
+SALT_LENGTH || 
+iv.length !== 
+IV_LENGTH ||
+encrypted.length === 0 
+){
+ throw new Error( 
+"INVALID_CODE"
+);
+}
+const key = await deriveKey( password, salt ); 
+const decrypted =
+await crypto.subtle.decrypt( 
+{ 
+name:"AES-GCM", 
+iv:iv, 
+tagLength:128
+},
+key, encrypted 
+); 
+return new TextDecoder() 
+.decode( decrypted );
+}
+/* ========================= 
+LOCK 
+========================= */ 
+async function lockMessage(){
+const message = messageBox.value; 
+const password = passwordBox.value;
+if( 
+message.trim() === "" 
+){
+ setStatus( "पहले message लिखें।", 
+"error"
+); 
+return;
+}
+if( 
+password.length === 0 
+){
+setStatus( 
+"Password डालें।",
+"error"
+);
+passwordBox.focus();
+return;
+}
+if( 
+password.length < 6 
+){
+setStatus( "Password कम से कम 6 characters का रखें।",
+"error"
+); 
+passwordBox.focus();
+return;
+}
+try{ 
+setBusy(true); 
+clearSecurityError(); 
+const encryptedCode =
+await encryptMessage( 
+message, 
+password 
+); 
+messageBox.value = encryptedCode; 
+passwordBox.value = ""; 
+copyButton.classList.remove("hidden" ); 
+wrongAttempts = 0; 
+setStatus( "✅ Message सुरक्षित रूप से lock हो गया।",
+"success");
+}
+catch(error){ 
+console.error(error); 
+setStatus( "Encryption में समस्या हुई।", "error" );
+}
+finally{ setBusy(false);
+}
+}
+/* ========================= 
+UNLOCK 
+========================= */ 
+async function unlockMessage(){
+const code = messageBox.value.trim(); 
+const password = passwordBox.value;
+if( code === "" ){ 
+setStatus( "Encrypted code डालें।", "error"); 
+return;
+}
+if( 
+password.length === 0 ){ 
+setStatus( "Password डालें।", "error"); 
+passwordBox.focus(); 
+return;
+}
+try{ 
+setBusy(true); 
+clearSecurityError(); 
+const message = 
+await decryptMessage(
+code, 
+password 
+); 
+messageBox.value = message; 
+passwordBox.value = ""; 
+copyButton.classList.add( "hidden" ); 
+wrongAttempts = 0; 
+setStatus( "✅ Message सफलतापूर्वक unlock हो गया।", 
+"success");
+}
+catch(error){ 
+console.error(error); 
+wrongAttempts++; 
+passwordBox.classList.add( "security-error" ); 
+setStatus( "❌ गलत password या invalid code। Attempt " + 
+wrongAttempts + "/3", "error"
+);
+if( 
+wrongAttempts >= 3 
+){ 
+messageBox.classList.add( "security-error" ); 
+alert( "🚨 सुरक्षा चेतावनी: जासूसी करना सख्त मना है!" ); 
+wrongAttempts = 0; 
+setStatus( "⚠️ सुरक्षा चेतावनी दिखाई गई।", "warning" );
+}
+}
+finally{ 
+setBusy(false);
+}
+}
+/* ========================= 
+COPY CODE 
+========================= */ 
+async function copyCode(){ 
+const code = messageBox.value.trim(); 
+if(
+!code || 
+!isEncryptedCode(code)
+){ 
+setStatus( "Encrypted code मौजूद नहीं है।", "error" ); 
+return;
+}
+try{ 
+const websiteURL = window.location.origin + window.location.pathname;
+const shareText = code + "\n\n🔐 PANJTAN पर खोलें:\n" + websiteURL;
+await navigator.clipboard.writeText( shareText ); 
+setStatus( "📋 गुप्त code और SafeBox99 link copy हो गया।", "success" );
+}
+catch(error){ messageBox.focus(); messageBox.select(); 
+setStatus( "Code select हो गया है। अब Copy करें।", "warning" );
+}
+}
+/* ========================= 
+PASTE CODE 
+========================= */ 
+async function pasteCode(){
+try{ 
+const text = await navigator .clipboard .readText(); 
+if( !text.trim()){ 
+setStatus( "Clipboard खाली है।", "error" ); 
+return;
+}
+// केवल SB99v1 वाला encrypted code निकालें
+const match = 
+text.match(
+/SB99v1\.[A-Za-z0-9+/=]+\.[A-Za-z0-9+/=]+\.[A-Za-z0-9+/=]+/); 
+if(!match){ 
+setStatus( 
+"Valid encrypted code नहीं मिला।", "error" ); 
+return;
+}
+const encryptedCode = match[0]; 
+messageBox.value = encryptedCode;
+copyButton.classList.remove("hidden");
+setStatus( "📥 Code paste हो गया। अब password डालें।", "success" );
+}
+catch(error){ 
+setStatus( 
+"Clipboard access नहीं मिला। Textarea में long-press करके Paste करें।", 
+"warning" ); 
+messageBox.focus();
+}
+}
+/* ========================= 
+MAIN BUTTON 
+========================= */ 
+lockButton.addEventListener( "click", async function(){ 
+if(busy){ 
+return;
+}
+const text = messageBox.value.trim();
+if( isEncryptedCode(text)){ 
+await unlockMessage();
+}
+else{ await lockMessage();
+}
+}
+);
+/* ========================= 
+COPY BUTTON 
+========================= */ 
+copyButton.addEventListener( "click", copyCode ); 
+/* ========================= 
+PASTE BUTTON
+========================= */ 
+pasteButton.addEventListener( "click", pasteCode ); 
+/* ========================= 
+MESSAGE INPUT 
+========================= */ 
+messageBox.addEventListener( "input", function(){ 
+clearSecurityError(); 
+const text = messageBox.value.trim();
+if( isEncryptedCode(text) ){ 
+copyButton.classList.remove( "hidden" );
+}
+else{ copyButton.classList.add( "hidden" );
+}
+setStatus("");
+}
+); 
+/* ========================= 
+PASSWORD INPUT 
+========================= */ 
+passwordBox.addEventListener( "input", function(){ 
+clearSecurityError();
+}
+); 
+/* ========================= 
+WEB CRYPTO CHECK 
+========================= */ 
+if(
+!window.crypto || 
+!window.crypto.subtle
+){ 
+setStatus( "इस browser में Web Crypto API उपलब्ध नहीं है।", "error");
+lockButton.disabled = true;
+}
+</script> 
+</body>
+</html>
