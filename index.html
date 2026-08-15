@@ -1,6 +1,18 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
+<!-- Google tag (gtag.js) -->
+<script async
+src="https://www.googletagmanager.com/gtag/js?id=G-761X4E43QC">
+</script>
+<script>
+window.dataLayer =
+window.dataLayer || [];
+function gtag()
+{dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-761X4E43QC');
+</script>
 <meta charset="UTF-8"> 
 <meta name="viewport"
 content="width=device-width, initial-scale=1.0">
@@ -17,7 +29,7 @@ padding:0;
 }
 /* =========================
 BODY
- ========================= */ 
+========================= */ 
 body{
 min-height:100vh;
 padding:15px;
@@ -226,6 +238,28 @@ textarea
 min-height:210px;
 }
 }
+.text-actions{
+display:grid;
+grid-template-columns:1fr 1fr 1fr;
+gap:10px;
+margin-top:12px;
+}
+.text-actions button{
+margin-top:0;
+background:rgba(56,189,248,0.12);
+border:1px solid rgba(56,189,248,0.30);
+color:#38bdf8;
+}
+@media(max-width:480px){
+ .text-actions{
+grid-template-columns:1fr 1fr 1fr;
+gap:7px;
+}
+.text-actions button{
+font-size:14px;
+padding:10px 5px;
+}
+}
 </style> 
 </head> 
 <body> 
@@ -246,13 +280,26 @@ placeholder="अपना message लिखें या encrypted code यह�
 spellcheck="false"
 autocomplete="off"
 ></textarea>
-<button 
-id="pasteButton" 
-class="paste-btn" 
+<div class="text-actions">
+<button
+id="copyTextButton"
 type="button"
 >
- 📥 कोड पेस्ट करें 
-</button> 
+📋 Copy
+</button>
+<button
+id="clearTextButton"
+type="button"
+>
+🧹 Clear
+</button>
+<button
+id="pasteTextButton"
+type="button"
+>
+📥 Paste
+</button>
+</div>
 <label for="password"> Password 
 </label>
 <input
@@ -267,14 +314,7 @@ class="lock-btn"
 type="button"
 >
  🔐 सुरक्षित लॉक / अनलॉक करें
-</button> 
-<button 
-id="copyButton" 
-class="copy-btn hidden" 
-type="button"
->
- 📋 गुप्त कोड कॉपी करें 
-</button> 
+</button>  
 <div id="status" 
 class="status" 
 aria-live="polite"
@@ -288,8 +328,9 @@ ELEMENTS
 const messageBox = document.getElementById("message");
 const passwordBox = document.getElementById("password");
 const lockButton = document.getElementById("lockButton"); 
-const copyButton = document.getElementById("copyButton");
-const pasteButton = document.getElementById("pasteButton");
+const copyTextButton = document.getElementById("copyTextButton");
+const clearTextButton = document.getElementById("clearTextButton");
+const pasteTextButton = document.getElementById("pasteTextButton");
 const statusBox = document.getElementById("status"); 
 /* =========================
    SECURITY SETTINGS
@@ -327,8 +368,9 @@ BUSY STATE
 function setBusy(value){
     busy = value; 
 lockButton.disabled = value; 
-    pasteButton.disabled = value; 
-copyButton.disabled = value;
+copyTextButton.disabled = value;
+clearTextButton.disabled = value;
+pasteTextButton.disabled = value;
 }
 /* ========================= 
 ENCRYPTED CODE CHECK 
@@ -543,7 +585,6 @@ password
 ); 
 messageBox.value = encryptedCode; 
 passwordBox.value = ""; 
-copyButton.classList.remove("hidden" ); 
 wrongAttempts = 0; 
 setStatus( "✅ Message सुरक्षित रूप से lock हो गया।",
 "success");
@@ -581,7 +622,6 @@ password
 ); 
 messageBox.value = message; 
 passwordBox.value = ""; 
-copyButton.classList.add( "hidden" ); 
 wrongAttempts = 0; 
 setStatus( "✅ Message सफलतापूर्वक unlock हो गया।", 
 "success");
@@ -607,56 +647,77 @@ setBusy(false);
 }
 }
 /* ========================= 
-COPY CODE 
-========================= */ 
-async function copyCode(){ 
-const code = messageBox.value.trim(); 
-if(
-!code || 
-!isEncryptedCode(code)
-){ 
-setStatus( "Encrypted code मौजूद नहीं है।", "error" ); 
+COPY / SHARE LINK
+========================= */
+async function copyText(){
+const code = messageBox.value.trim();
+if(!code){
+setStatus("Copy करने के लिए कुछ भी नहीं है।", "error");
 return;
 }
-try{ 
-const websiteURL = window.location.origin + window.location.pathname;
-const shareText = code + "\n\n🔐 PANJTAN पर खोलें:\n" + websiteURL;
-await navigator.clipboard.writeText( shareText ); 
-setStatus( "📋 गुप्त code और SafeBox99 link copy हो गया।", "success" );
-}
-catch(error){ messageBox.focus(); messageBox.select(); 
-setStatus( "Code select हो गया है। अब Copy करें।", "warning" );
-}
-}
-/* ========================= 
-PASTE CODE 
-========================= */ 
-async function pasteCode(){
-try{ 
-const text = await navigator .clipboard .readText(); 
-if( !text.trim()){ 
-setStatus( "Clipboard खाली है।", "error" ); 
+if(!isEncryptedCode(code)){
+setStatus("पहले message को lock करें।", "error");
 return;
 }
-// केवल SB99v1 वाला encrypted code निकालें
-const match = 
-text.match(
-/SB99v1\.[A-Za-z0-9+/=]+\.[A-Za-z0-9+/=]+\.[A-Za-z0-9+/=]+/); 
-if(!match){ 
-setStatus( 
-"Valid encrypted code नहीं मिला।", "error" ); 
-return;
-}
-const encryptedCode = match[0]; 
-messageBox.value = encryptedCode;
-copyButton.classList.remove("hidden");
-setStatus( "📥 Code paste हो गया। अब password डालें।", "success" );
-}
-catch(error){ 
-setStatus( 
-"Clipboard access नहीं मिला। Textarea में long-press करके Paste करें।", 
-"warning" ); 
+try{
+const shareURL =
+window.location.origin +
+window.location.pathname +
+"?code=" +
+encodeURIComponent(code);
+const shareText = shareURL + "\n\n🔐 PANJTAN पर खोलें";
+await navigator.clipboard.writeText(shareText);
+setStatus("🔗 PANJTAN link copy हो गया।", "success");
+}catch(error){
 messageBox.focus();
+setStatus("Link copy नहीं हो सका।", "warning");
+}
+}
+/* =========================
+CLEAR TEXTAREA
+========================= */
+function clearText(){
+messageBox.value = "";
+passwordBox.value = "";
+clearSecurityError();
+setStatus("🧹 Text साफ हो गया।", "success");
+messageBox.focus();
+}
+/* =========================
+PASTE TEXTAREA
+========================= */
+async function pasteText(){
+try{
+const text = await navigator.clipboard.readText();
+if(!text.trim()){
+setStatus("Clipboard खाली है।", "error");
+return;
+}
+let decodedText = text;
+try{
+decodedText = decodeURIComponent(text);
+ }catch(error){
+// अगर URL encoded नहीं है तो original text ही
+रहेगा
+}
+const match = decodedText.match(
+/SB99v1\.[A-Za-z0-9+/=]+\.[A-Za-z0-9+/=]+\.[A-Za-z0-9+/=]+/);
+if(match){
+messageBox.value = match[0];
+clearSecurityError();
+setStatus("📥 Secret code paste हो गया।", "success");
+passwordBox.focus();
+}else{
+messageBox.value = text;
+clearSecurityError();
+setStatus("📥 Text paste हो गया।", "success");
+}
+}catch(error){
+messageBox.focus();
+setStatus(
+"Clipboard access नहीं मिला। Textarea में long-press करके Paste करें।",
+"warning"
+);
 }
 }
 /* ========================= 
@@ -674,25 +735,14 @@ else{ await lockMessage();
 }
 }
 );
-/* ========================= 
-COPY BUTTON 
-========================= */ 
-copyButton.addEventListener( "click", copyCode ); 
-/* ========================= 
-PASTE BUTTON
-========================= */ 
-pasteButton.addEventListener( "click", pasteCode ); 
-/* ========================= 
-MESSAGE INPUT 
-========================= */ 
+copyTextButton.addEventListener( "click", copyText ); 
+clearTextButton.addEventListener("click", clearText);
+pasteTextButton.addEventListener( "click", pasteText );
+/* ==========================
+MESSAGE INPUT
+========================== */ 
 messageBox.addEventListener( "input", function(){ 
-clearSecurityError(); 
-const text = messageBox.value.trim();
-if( isEncryptedCode(text) ){ 
-copyButton.classList.remove( "hidden" );
-}
-else{ copyButton.classList.add( "hidden" );
-}
+clearSecurityError();
 setStatus("");
 }
 ); 
@@ -702,7 +752,28 @@ PASSWORD INPUT
 passwordBox.addEventListener( "input", function(){ 
 clearSecurityError();
 }
-); 
+);
+/* =========================
+LOAD CODE FROM LINK
+========================= */
+function loadCodeFromURL(){
+const params = new URLSearchParams(window.location.search);
+const code = params.get("code");
+if(!code){
+return;
+}
+const match = code.match(
+/SB99v1\.[A-Za-z0-9+/=]+\.[A-Za-z0-9+/=]+\.[A-Za-z0-9+/=]+/);
+if(!match){
+setStatus("❌ Invalid encrypted code.", "error");
+return;
+}
+const cleanCode = match[0];
+messageBox.value = cleanCode;
+passwordBox.focus();
+setStatus("🔐 Secret code तैयार है। अब password डालें।", "success");
+}
+loadCodeFromURL();
 /* ========================= 
 WEB CRYPTO CHECK 
 ========================= */ 
