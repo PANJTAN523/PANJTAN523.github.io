@@ -167,16 +167,6 @@ background:#38bdf8;
 color:#03111c;
 }
 /* =========================
-PASTE BUTTON 
-========================= */
-.paste-btn{
-background:
-rgba(56,189,248,0.12);
-border:1px solid
-rgba(56,189,248,0.30);
-color:#38bdf8;
-}
-/* =========================
 COPY BUTTON 
 ========================= */
 .copy-btn{
@@ -240,7 +230,7 @@ min-height:210px;
 }
 .text-actions{
 display:grid;
-grid-template-columns:1fr 1fr 1fr;
+grid-template-columns:1fr 1fr;
 gap:10px;
 margin-top:12px;
 }
@@ -252,7 +242,7 @@ color:#38bdf8;
 }
 @media(max-width:480px){
  .text-actions{
-grid-template-columns:1fr 1fr 1fr;
+grid-template-columns:1fr 1fr;
 gap:7px;
 }
 .text-actions button{
@@ -293,12 +283,6 @@ type="button"
 >
 🧹 Clear
 </button>
-<button
-id="pasteTextButton"
-type="button"
->
-📥 Paste
-</button>
 </div>
 <label for="password"> Password 
 </label>
@@ -330,7 +314,6 @@ const passwordBox = document.getElementById("password");
 const lockButton = document.getElementById("lockButton"); 
 const copyTextButton = document.getElementById("copyTextButton");
 const clearTextButton = document.getElementById("clearTextButton");
-const pasteTextButton = document.getElementById("pasteTextButton");
 const statusBox = document.getElementById("status"); 
 /* =========================
    SECURITY SETTINGS
@@ -370,7 +353,6 @@ function setBusy(value){
 lockButton.disabled = value; 
 copyTextButton.disabled = value;
 clearTextButton.disabled = value;
-pasteTextButton.disabled = value;
 }
 /* ========================= 
 ENCRYPTED CODE CHECK 
@@ -683,43 +665,6 @@ clearSecurityError();
 setStatus("🧹 Text साफ हो गया।", "success");
 messageBox.focus();
 }
-/* =========================
-PASTE TEXTAREA
-========================= */
-async function pasteText(){
-try{
-const text = await navigator.clipboard.readText();
-if(!text.trim()){
-setStatus("Clipboard खाली है।", "error");
-return;
-}
-let decodedText = text;
-try{
-decodedText = decodeURIComponent(text);
- }catch(error){
-// अगर URL encoded नहीं है तो original text ही
-रहेगा
-}
-const match = decodedText.match(
-/SB99v1\.[A-Za-z0-9+/=]+\.[A-Za-z0-9+/=]+\.[A-Za-z0-9+/=]+/);
-if(match){
-messageBox.value = match[0];
-clearSecurityError();
-setStatus("📥 Secret code paste हो गया।", "success");
-passwordBox.focus();
-}else{
-messageBox.value = text;
-clearSecurityError();
-setStatus("📥 Text paste हो गया।", "success");
-}
-}catch(error){
-messageBox.focus();
-setStatus(
-"Clipboard access नहीं मिला। Textarea में long-press करके Paste करें।",
-"warning"
-);
-}
-}
 /* ========================= 
 MAIN BUTTON 
 ========================= */ 
@@ -737,7 +682,6 @@ else{ await lockMessage();
 );
 copyTextButton.addEventListener( "click", copyText ); 
 clearTextButton.addEventListener("click", clearText);
-pasteTextButton.addEventListener( "click", pasteText );
 /* ==========================
 MESSAGE INPUT
 ========================== */ 
